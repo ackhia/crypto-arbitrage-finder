@@ -1,0 +1,6 @@
+Poloniex,BCN/BTC
+Kraken,BCC/BTC
+*,GBP
+*,USD
+*,EUR
+*,CNY
