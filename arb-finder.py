@@ -1,11 +1,12 @@
 
 
-import sys, urllib2, os
+import sys, urllib2, os, winsound
 from pyquery import PyQuery
 from itertools import groupby
 from functools import reduce
+from time import sleep
 
-test_mode = False
+test_mode = True
 threshold = 0.08
 market_display_count = 5
 
@@ -27,19 +28,28 @@ def print_markets(markets):
     print  
     
     
+def beep_beep():
+    winsound.Beep(2100,100)
+    sleep(0.1)
+    winsound.Beep(2100,100)
+    
 def print_arbs(arbs):
     for a in arbs:
-        if a["arb"] > threshold:
+        print
+        print "--=== " + a["pair"] + " - " + "{0:.2f}%".format(a["arb"] * 100) + " ===--"
+        if a["new"]:
+            print "*** NEW ***"
+            beep_beep()
+        else:
             print
-            print "--=== "+ a["pair"] + " - " + "{0:.2f}%".format(a["arb"] * 100) + " ===--"
-            print
-            print "Lowests markets:"
-            i = 1
-            print_markets(a["lowests_markets"])
-            
-            print "Highest markets: " 
-            print_markets(a["highest_markets"])
-            print 
+        print "Lowests markets:"
+        i = 1
+        print_markets(a["lowests_markets"])
+        
+        print "Highest markets: " 
+        print_markets(a["highest_markets"])
+        print 
+        print "Average price: " + str(a["average_price"])
         
         
 def get_currencies():        
@@ -70,7 +80,6 @@ def get_pairs(ignore_list):
         if e('td:nth-child(7)').text() == "Recently":
             market = e('td:nth-child(2)').text()        
             pair = e('td:nth-child(3)').text()
-            pair = pair.replace("BCH", "BCC")
             
             price = float(e('td:nth-child(5)').text().strip("$"))
             
@@ -81,7 +90,7 @@ def get_pairs(ignore_list):
     
     return pairs
     
-def get_arbs(pairs):
+def get_arbs(pairs, old_arbs):
     arbs = []
     for k, g in groupby(pairs, lambda p: p["pair"]):
         group_pairs = list(g)
@@ -92,11 +101,14 @@ def get_arbs(pairs):
             
             arb =  1 - min_price_market["price"] / max_price_market["price"]        
             
-            arbs.append({"pair" : k, 
-                               "arb" : arb, 
-                               "highest_markets" : sorted(group_pairs, key=lambda e: e["price"], reverse = True)[:market_display_count], 
-                               "lowests_markets" : sorted(group_pairs, key=lambda e: e["price"])[:market_display_count], 
-                               "average_price" : average_price_market })
+            if arb > threshold:            
+                arbs.append({"pair" : k, 
+                                   "arb" : arb, 
+                                   "highest_markets" : sorted(group_pairs, key=lambda e: e["price"], reverse = True)[:market_display_count], 
+                                   "lowests_markets" : sorted(group_pairs, key=lambda e: e["price"])[:market_display_count], 
+                                   "average_price" : average_price_market,
+                                   "new" : contains(old_arbs, lambda e: e["pair"] == k) == False
+                                   })
             
     arbs.sort(key= lambda k: k["arb"], reverse=True)
     
@@ -104,9 +116,15 @@ def get_arbs(pairs):
     
 
 if __name__ == "__main__":    
-    clear()
-    currencies = get_currencies()
-    ignore_list = get_ignore_list()
-    pairs = get_pairs(ignore_list)
-    arbs = get_arbs(pairs)
-    print_arbs(arbs)
+    arbs = []
+    while True:
+        try:
+            clear()
+            currencies = get_currencies()
+            ignore_list = get_ignore_list()
+            pairs = get_pairs(ignore_list)
+            arbs = get_arbs(pairs, arbs)
+            print_arbs(arbs)
+            sleep(8)
+        except:
+            pass

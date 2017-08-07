@@ -1,5 +1,5 @@
 Poloniex,BCN/BTC
-Kraken,BCC/BTC
+Kraken,BCH/BTC
 *,GBP
 *,USD
 *,EUR
