@@ -1,13 +1,14 @@
 
 
-import sys, urllib2, os, winsound
+import sys, os#, winsound
+from urllib.request import urlopen
 from pyquery import PyQuery
 from itertools import groupby
 from functools import reduce
 from time import sleep
 
-test_mode = True
-threshold = 0.08
+test_mode = False
+threshold = 0.05
 market_display_count = 5
 
 def clear():
@@ -23,37 +24,38 @@ def contains(list, filter):
 def print_markets(markets):
     i = 1
     for m in markets:
-        print str(i )+ ") " + m["market"] + "(" + str(m["price"] )+ ")"
+        print(str(i )+ ") " + m["market"] + "(" + "{0:.8f}".format(m["price"]) + ")")
         i += 1
     print  
     
     
 def beep_beep():
-    winsound.Beep(2100,100)
-    sleep(0.1)
-    winsound.Beep(2100,100)
+    #winsound.Beep(2100,100)
+    #sleep(0.1)
+    #winsound.Beep(2100,100)
+    pass
     
 def print_arbs(arbs):
     for a in arbs:
-        print
-        print "--=== " + a["pair"] + " - " + "{0:.2f}%".format(a["arb"] * 100) + " ===--"
+        print()
+        print("--=== " + a["pair"] + " - " + "{0:.2f}%".format(a["arb"] * 100) + " ===--")
         if a["new"]:
-            print "*** NEW ***"
+            print("*** NEW ***")
             beep_beep()
         else:
-            print
-        print "Lowests markets:"
+            print()
+        print("Lowests markets:")
         i = 1
         print_markets(a["lowests_markets"])
         
-        print "Highest markets: " 
+        print("Highest markets: ")
         print_markets(a["highest_markets"])
-        print 
-        print "Average price: " + str(a["average_price"])
+        print()
+        print("Average price: " + "{0:.8f}".format(a["average_price"]))
         
         
 def get_currencies():        
-    with open(sys.argv[1]) as f:
+    with open("currencies.txt") as f:
         c = f.readline()
         return c.split(",")
     
@@ -69,8 +71,8 @@ def get_pairs(ignore_list):
             with open(c + ".html") as f:
                 html = f.read()
         else:
-            url = "https://coinmarketcap.com/currencies/" + c
-            rqst = urllib2.urlopen(url)
+            url = "https://coinmarketcap.com/currencies/" + c + "/#native"
+            rqst = urlopen(url)
             html = rqst.read()
       
     pq = PyQuery(html)
@@ -81,7 +83,7 @@ def get_pairs(ignore_list):
             market = e('td:nth-child(2)').text()        
             pair = e('td:nth-child(3)').text()
             
-            price = float(e('td:nth-child(5)').text().strip("$"))
+            price = float(e('td:nth-child(5) >span').attr('data-native').strip("$"))
             
             if contains(ignore_list, lambda x: (x[0] == market or x[0] == "*") and (x[1] in pair or x[1] == "*")) == False:
                 pairs.append({"market" : market, "pair" : pair, "price" : price })
@@ -120,11 +122,19 @@ if __name__ == "__main__":
     while True:
         try:
             clear()
+            if test_mode:
+                print("********** TEST MODE **********")
             currencies = get_currencies()
             ignore_list = get_ignore_list()
             pairs = get_pairs(ignore_list)
             arbs = get_arbs(pairs, arbs)
             print_arbs(arbs)
-            sleep(8)
+            if len(arbs) == 0:
+                print("Nothing found")
+            sleep(60)
+        except KeyboardInterrupt:            
+            raise
+        
         except:
             pass
+            raise

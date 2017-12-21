@@ -1,6 +1,31 @@
-Poloniex,BCN/BTC
-Kraken,BCH/BTC
 *,GBP
 *,USD
 *,EUR
 *,CNY
+*,ZAR
+Bitcoin Indonesia,*
+Exmo,*
+Livecoin,*
+51szzc,*
+Huobi,*
+Allcoin,*
+Binance,*
+C2CX,*
+BCC Exchange,*
+Novaexchange,*
+Poloniex,STEEM
+xBTCe,*
+LakeBTC,*
+bitFlyer,*
+Zaif,*
+BTCBOX,*
+BitcoinToYou,*
+Mercado Bitcoin,*
+DSX,*
+OKEx,*
+Gatecoin,*
+OpenLedger DEX,*
+LocalTrade,*
+Tidex,*
+*,RUR
+*,CAD
