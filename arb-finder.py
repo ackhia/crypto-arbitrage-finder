@@ -12,7 +12,7 @@ threshold = 0.05
 market_display_count = 5
 
 def clear():
-    os.system('cls')
+    print(chr(27) + "[2J")
 
 def contains(list, filter):
     for x in list:
